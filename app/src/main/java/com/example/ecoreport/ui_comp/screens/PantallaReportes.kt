@@ -21,11 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.ecoreport.data.ReporteEntity
-
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Button
 @Composable
 fun PantallaReportes(
     reportes: List<ReporteEntity>,
     seleccionarReporte: (ReporteEntity) -> Unit,
+    filtrarPorEstado: (String?) -> Unit,
     volver: () -> Unit
 ) {
 
@@ -40,6 +42,58 @@ fun PantallaReportes(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
+
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+            Button(
+                onClick = {
+                    filtrarPorEstado(null)
+                }
+            ) {
+                Text("Todos")
+            }
+
+            Button(
+                onClick = {
+                    filtrarPorEstado("PENDIENTE")
+                }
+            ) {
+                Text("Pendientes")
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+            Button(
+                onClick = {
+                    filtrarPorEstado("EN_PROCESO")
+                }
+            ) {
+                Text("En proceso")
+            }
+
+            Button(
+                onClick = {
+                    filtrarPorEstado("RESUELTO")
+                }
+            ) {
+                Text("Resueltos")
+            }
+        }
 
         Spacer(
             modifier = Modifier.height(16.dp)

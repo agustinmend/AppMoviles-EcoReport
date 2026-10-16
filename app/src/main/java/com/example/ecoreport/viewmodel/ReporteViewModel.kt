@@ -47,4 +47,20 @@ class ReporteViewModel (
             cargarReportes()
         }
     }
+
+    fun filtrarPorEstado(
+        estado: String?
+    ) {
+        viewModelScope.launch {
+
+            val datos = if (estado == null) {
+                repository.obtenerTodos()
+            } else {
+                repository.obtenerPorEstado(estado)
+            }
+
+            reportes.clear()
+            reportes.addAll(datos)
+        }
+    }
 }

@@ -9,6 +9,8 @@ import com.example.ecoreport.ui.screens.*
 import com.example.ecoreport.ui_comp.screens.PantallaInicio
 import com.example.ecoreport.viewmodel.ReporteViewModel
 import kotlinx.coroutines.launch
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 
 @Composable
 fun AppNavigation(
@@ -18,7 +20,18 @@ fun AppNavigation(
     val navController =
         rememberNavController()
 
-    val viewModel: ReporteViewModel = viewModel()
+    val viewModel: ReporteViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+
+            override fun <T : ViewModel> create(
+                modelClass: Class<T>
+            ): T {
+
+                @Suppress("UNCHECKED_CAST")
+                return ReporteViewModel(repository) as T
+            }
+        }
+    )
     val reportes =
         remember {
             mutableStateListOf<
@@ -127,6 +140,10 @@ fun AppNavigation(
                     navController.navigate(
                         "detalle"
                     )
+                },
+
+                filtrarPorEstado = { estado ->
+                    viewModel.filtrarPorEstado(estado)
                 },
 
                 volver = {
