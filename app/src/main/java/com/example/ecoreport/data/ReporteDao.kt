@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ReporteDao {
@@ -17,13 +18,23 @@ interface ReporteDao {
     @Query(
         "SELECT * FROM reportes ORDER BY id DESC"
     )
-    suspend fun obtenerTodos():
-            List<ReporteEntity>
+    fun obtenerTodos():
+            Flow<List<ReporteEntity>>
 
     @Query(
-        "SELECT * FROM reportes WHERE estado = :estado ORDER BY id DESC"
+        """
+            SELECT *
+            FROM reportes
+            WHERE (:estado IS NULL OR estado = :estado)
+                AND (:categoria IS NULL OR categoria = :categoria)
+            ORDER BY id DESC
+        """
     )
-    suspend fun obtenerPorEstado(estado : String): List<ReporteEntity>
+    fun obtenerFiltrados(
+        estado: String?,
+        categoria: String?
+    ):
+            Flow<List<ReporteEntity>>
 
     @Update
     suspend fun actualizar(

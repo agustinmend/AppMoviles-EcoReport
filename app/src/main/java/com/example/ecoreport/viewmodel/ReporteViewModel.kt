@@ -3,64 +3,76 @@ package com.example.ecoreport.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ecoreport.data.ReporteEntity
+import com.example.ecoreport.model.FiltrosReporte
 import com.example.ecoreport.repository.ReporteRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ReporteViewModel (
     private val repository: ReporteRepository
 ): ViewModel() {
-    val reportes = mutableListOf<ReporteEntity>()
 
-    init {
-        cargarReportes()
-    }
+    private val _filtros = MutableStateFlow(FiltrosReporte())
+    val filtros: StateFlow<FiltrosReporte> = _filtros
 
-    fun cargarReportes() {
-        viewModelScope.launch {
-            val datos = repository.obtenerTodos()
+    val reportes:
+            StateFlow<List<ReporteEntity>> =
+        repository.obtenerTodos()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted
+                    .WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
 
-            reportes.clear()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val reportesFiltrados:
+            StateFlow<List<ReporteEntity>> =
+        _filtros
+            .flatMapLatest { filtrosActuales ->
+                repository.obtenerFiltrados(
+                    filtrosActuales.estado,
+                    filtrosActuales.categoria
+                )
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted
+                    .WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
 
-            reportes.addAll(datos)
-        }
-    }
+
 
     fun insertar(reporte: ReporteEntity) {
         viewModelScope.launch {
             repository.insertar(reporte)
-            cargarReportes()
         }
     }
 
     fun eliminar(reporte: ReporteEntity) {
         viewModelScope.launch {
             repository.eliminar(reporte)
-
-            cargarReportes()
         }
     }
 
     fun actualizar(reporte: ReporteEntity) {
         viewModelScope.launch {
             repository.actualizar(reporte)
-
-            cargarReportes()
         }
     }
 
-    fun filtrarPorEstado(
-        estado: String?
-    ) {
-        viewModelScope.launch {
-
-            val datos = if (estado == null) {
-                repository.obtenerTodos()
-            } else {
-                repository.obtenerPorEstado(estado)
-            }
-
-            reportes.clear()
-            reportes.addAll(datos)
-        }
+    fun aplicarFiltros(estado: String?, categoria: String?) {
+        _filtros.value = FiltrosReporte(
+            estado = estado,
+            categoria = categoria
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+        )
     }
 }

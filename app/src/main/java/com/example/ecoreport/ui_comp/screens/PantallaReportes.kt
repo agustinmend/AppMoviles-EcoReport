@@ -1,7 +1,8 @@
-package com.example.ecoreport.ui.screens
+package com.example.ecoreport.ui_comp.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,25 +12,44 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.ecoreport.data.ReporteEntity
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.Button
+import com.example.ecoreport.model.EstadoReporte
+import com.example.ecoreport.model.FiltrosReporte
+
 @Composable
 fun PantallaReportes(
     reportes: List<ReporteEntity>,
+    filtros: FiltrosReporte,
+    aplicarFiltros: (String?, String?) -> Unit,
     seleccionarReporte: (ReporteEntity) -> Unit,
-    filtrarPorEstado: (String?) -> Unit,
     volver: () -> Unit
 ) {
+    var estadoSeleccionado by remember(filtros.estado) {
+        mutableStateOf(filtros.estado)
+    }
+    var categoriaSeleccionada by remember(filtros.categoria) {
+        mutableStateOf(filtros.categoria.orEmpty())
+    }
+    var menuEstadoExpandido by remember {
+        mutableStateOf(false)
+    }
 
     Column(
         modifier = Modifier
@@ -47,25 +67,51 @@ fun PantallaReportes(
             modifier = Modifier.height(16.dp)
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Box(
+            modifier = Modifier.fillMaxWidth()
         ) {
-
-            Button(
+            OutlinedButton(
                 onClick = {
-                    filtrarPorEstado(null)
-                }
+                    menuEstadoExpandido = true
+                },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Todos")
+                Text(
+                    text = "Estado: ${
+                        estadoSeleccionado
+                            ?.replace("_", " ")
+                            ?: "Todos"
+                    }"
+                )
             }
 
-            Button(
-                onClick = {
-                    filtrarPorEstado("PENDIENTE")
+            DropdownMenu(
+                expanded = menuEstadoExpandido,
+                onDismissRequest = {
+                    menuEstadoExpandido = false
                 }
             ) {
-                Text("Pendientes")
+                DropdownMenuItem(
+                    text = {
+                        Text("Todos los estados")
+                    },
+                    onClick = {
+                        estadoSeleccionado = null
+                        menuEstadoExpandido = false
+                    }
+                )
+
+                EstadoReporte.values().forEach { estado ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(estado.name.replace("_", " "))
+                        },
+                        onClick = {
+                            estadoSeleccionado = estado.name
+                            menuEstadoExpandido = false
+                        }
+                    )
+                }
             }
         }
 
@@ -73,26 +119,32 @@ fun PantallaReportes(
             modifier = Modifier.height(8.dp)
         )
 
-        Row(
+        OutlinedTextField(
+            value = categoriaSeleccionada,
+            onValueChange = {
+                categoriaSeleccionada = it
+            },
+            label = {
+                Text("Categoría")
+            },
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            singleLine = true
+        )
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        Button(
+            onClick = {
+                aplicarFiltros(
+                    estadoSeleccionado,
+                    categoriaSeleccionada
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
-
-            Button(
-                onClick = {
-                    filtrarPorEstado("EN_PROCESO")
-                }
-            ) {
-                Text("En proceso")
-            }
-
-            Button(
-                onClick = {
-                    filtrarPorEstado("RESUELTO")
-                }
-            ) {
-                Text("Resueltos")
-            }
+            Text("APLICAR FILTROS")
         }
 
         Spacer(
@@ -102,7 +154,7 @@ fun PantallaReportes(
         if (reportes.isEmpty()) {
 
             Text(
-                text = "No existen reportes registrados."
+                text = "No se encontraron reportes con los filtros seleccionados."
             )
 
         } else {
