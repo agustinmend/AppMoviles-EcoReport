@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,8 +27,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.ecoreport.data.ReporteEntity
 import com.example.ecoreport.model.EstadoReporte
@@ -67,84 +70,87 @@ fun PantallaReportes(
             modifier = Modifier.height(16.dp)
         )
 
-        Box(
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            OutlinedButton(
-                onClick = {
-                    menuEstadoExpandido = true
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Estado: ${
-                        estadoSeleccionado
-                            ?.replace("_", " ")
-                            ?: "Todos"
-                    }"
-                )
-            }
 
-            DropdownMenu(
-                expanded = menuEstadoExpandido,
-                onDismissRequest = {
-                    menuEstadoExpandido = false
-                }
+            Box(
+                modifier = Modifier.weight(1.2f)
             ) {
-                DropdownMenuItem(
-                    text = {
-                        Text("Todos los estados")
-                    },
+                OutlinedButton(
                     onClick = {
-                        estadoSeleccionado = null
+                        menuEstadoExpandido = true
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = estadoSeleccionado
+                            ?.replace("_", " ")
+                            ?: "Todos",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = menuEstadoExpandido,
+                    onDismissRequest = {
                         menuEstadoExpandido = false
                     }
-                )
-
-                EstadoReporte.values().forEach { estado ->
+                ) {
                     DropdownMenuItem(
                         text = {
-                            Text(estado.name.replace("_", " "))
+                            Text("Todos los estados")
                         },
                         onClick = {
-                            estadoSeleccionado = estado.name
+                            estadoSeleccionado = null
                             menuEstadoExpandido = false
                         }
                     )
+
+                    EstadoReporte.values().forEach { estado ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(estado.name.replace("_", " "))
+                            },
+                            onClick = {
+                                estadoSeleccionado = estado.name
+                                menuEstadoExpandido = false
+                            }
+                        )
+                    }
                 }
             }
-        }
 
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
+            OutlinedTextField(
+                value = categoriaSeleccionada,
+                onValueChange = {
+                    categoriaSeleccionada = it
+                },
+                label = {
+                    Text("Categoría")
+                },
+                modifier = Modifier.weight(1.5f),
+                singleLine = true
+            )
 
-        OutlinedTextField(
-            value = categoriaSeleccionada,
-            onValueChange = {
-                categoriaSeleccionada = it
-            },
-            label = {
-                Text("Categoría")
-            },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
-
-        Button(
-            onClick = {
-                aplicarFiltros(
-                    estadoSeleccionado,
-                    categoriaSeleccionada
+            Button(
+                onClick = {
+                    aplicarFiltros(
+                        estadoSeleccionado,
+                        categoriaSeleccionada
+                    )
+                },
+                modifier = Modifier.weight(0.9f)
+            ) {
+                Text(
+                    text = "Buscar",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("APLICAR FILTROS")
+            }
         }
 
         Spacer(
