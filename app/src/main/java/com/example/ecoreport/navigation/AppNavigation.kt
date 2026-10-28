@@ -16,6 +16,7 @@ import com.example.ecoreport.ui_comp.screens.PantallaDetalle
 import com.example.ecoreport.ui_comp.screens.PantallaEstadisticas
 import com.example.ecoreport.ui_comp.screens.PantallaRegistro
 import com.example.ecoreport.ui_comp.screens.PantallaReportes
+import com.example.ecoreport.ui_comp.screens.PantallaReportesRemotos
 import com.example.ecoreport.ui_comp.screens.PantallaInicio
 import com.example.ecoreport.viewmodel.ReporteViewModel
 import com.example.ecoreport.viewmodel.ReporteViewModelFactory
@@ -45,15 +46,12 @@ fun AppNavigation(
     val reportes by viewModel.reportes
         .collectAsStateWithLifecycle()
 
-    val reportesFiltrados by viewModel.reportesFiltrados
-        .collectAsStateWithLifecycle()
-
     var reporteSeleccionado by remember {
         mutableStateOf<ReporteEntity?>(null)
     }
 
-    val filtros by viewModel
-        .filtros
+    val categoriaSeleccionada by viewModel
+        .categoriaSeleccionada
         .collectAsStateWithLifecycle()
 
     NavHost(
@@ -77,6 +75,13 @@ fun AppNavigation(
 
                     navController.navigate(
                         "reportes"
+                    )
+                },
+
+                irReportesRemotos = {
+
+                    navController.navigate(
+                        "reportes-remotos"
                     )
                 },
 
@@ -114,12 +119,13 @@ fun AppNavigation(
         composable("reportes") {
 
             PantallaReportes(
-                reportes = reportesFiltrados,
+                reportes = reportes,
 
-                filtros = filtros,
-                aplicarFiltros = {
-                        estado, categoria ->
-                    viewModel.aplicarFiltros(estado, categoria)
+                categoriaSeleccionada = categoriaSeleccionada,
+
+                seleccionarCategoria = {
+                    categoria ->
+                    viewModel.seleccionarCategoria(categoria)
                 },
 
                 seleccionarReporte = {
@@ -137,6 +143,26 @@ fun AppNavigation(
 
                     navController
                         .popBackStack()
+                }
+            )
+        }
+
+        composable("reportes-remotos") {
+
+            val reportesRemotos by viewModel.reportesRemotos
+                .collectAsStateWithLifecycle()
+            val cargandoRemotos by viewModel.cargando
+                .collectAsStateWithLifecycle()
+            val errorRemotos by viewModel.error
+                .collectAsStateWithLifecycle()
+
+            PantallaReportesRemotos(
+                reportes = reportesRemotos,
+                cargando = cargandoRemotos,
+                error = errorRemotos,
+                cargarReportes = viewModel::cargarReportesRemotos,
+                volver = {
+                    navController.popBackStack()
                 }
             )
         }
